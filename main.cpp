@@ -8,6 +8,28 @@ const int screen_width = 640;
 const int screen_height = 480;
 const int screen_bpp = 32;
 
+// use essa função pra carregar uma imagem.bmp e deixa o fundo transparente
+SDL_Surface *fundo_transparente(const char *filename, Uint8 red, Uint8 green, Uint8 blue)
+{
+    SDL_Surface *load = NULL;
+    SDL_Surface *otimizado = NULL;
+
+    load = SDL_LoadBMP(filename);
+
+    if(load != NULL)
+    {
+        otimizado = SDL_DisplayFormat(load);
+        SDL_FreeSurface(load);
+
+        if(otimizado != NULL)
+        {
+            SDL_SetColorKey(otimizado, SDL_SRCCOLORKEY, SDL_MapRGB(otimizado->format, red, green, blue));
+        }
+    }
+
+    return otimizado;
+}
+
 
 // use essa função pra desenhar uma imagem na tela
 void DrawImage(int x, int y, SDL_Surface *image)
