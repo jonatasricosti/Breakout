@@ -41,11 +41,12 @@ void DrawImage(int x, int y, SDL_Surface *image)
     SDL_BlitSurface(image, NULL, tela, &mover);
 }
 
-
+SDL_Surface *iconImage = NULL;
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
 void LoadFiles()
 {
+
 }
 
 
@@ -53,6 +54,7 @@ void LoadFiles()
 // nota: essa função só deve ser chamada no final do programa
 void CloseFiles()
 {
+    SDL_FreeSurface(iconImage);
 }
 
 // para o framerate
@@ -63,8 +65,12 @@ const int framerate =  1000/fps;
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
+iconImage = SDL_LoadBMP("gfx/icon.bmp");
+
+SDL_WM_SetIcon(iconImage, 0);
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
+SDL_WM_SetCaption("Breakout", NULL);
 
 // game loop
 while(executando)
