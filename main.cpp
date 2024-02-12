@@ -43,6 +43,7 @@ void DrawImage(int x, int y, SDL_Surface *image)
 }
 
 SDL_Surface *iconImage = NULL;
+SDL_Surface *backgroundImage = NULL;
 
 TTF_Font *ttfFile = NULL;
 
@@ -51,6 +52,7 @@ TTF_Font *ttfFile = NULL;
 void LoadFiles()
 {
     ttfFile = TTF_OpenFont("fontes/times.ttf", 40);
+    backgroundImage = SDL_LoadBMP("gfx/background.bmp");
 }
 
 
@@ -59,6 +61,7 @@ void LoadFiles()
 void CloseFiles()
 {
     SDL_FreeSurface(iconImage);
+    SDL_FreeSurface(backgroundImage);
     TTF_CloseFont(ttfFile);
 }
 
@@ -205,6 +208,12 @@ void DrawText(int x, int y, char *text, Uint8 red, Uint8 green, Uint8 blue, TTF_
     SDL_FreeSurface(buffer);
 }
 
+
+void DrawGame()
+{
+    DrawImage(0,0,backgroundImage);
+}
+
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
@@ -257,9 +266,7 @@ while(executando)
 
     SDL_FillRect(tela, 0, 0);
 
-    // teste
-    DrawText(120,70,"Eu amo programar em c++", 255,255,0,ttfFile);
-    DrawText(120,150,"Créditos ação ", rand() % 256,rand() % 256,rand() % 256,ttfFile);
+    DrawGame();
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
