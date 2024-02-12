@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 SDL_Event evento;
 SDL_Surface *tela = NULL;
@@ -42,11 +43,14 @@ void DrawImage(int x, int y, SDL_Surface *image)
 }
 
 SDL_Surface *iconImage = NULL;
+
+TTF_Font *ttfFile = NULL;
+
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
 void LoadFiles()
 {
-
+    ttfFile = TTF_OpenFont("fontes/times.ttf", 40);
 }
 
 
@@ -55,6 +59,7 @@ void LoadFiles()
 void CloseFiles()
 {
     SDL_FreeSurface(iconImage);
+    TTF_CloseFont(ttfFile);
 }
 
 // para o framerate
@@ -183,9 +188,28 @@ class Janela
     }
 };
 
+
+// use essa função pra desenhar texto na tela usando fonte ttf
+void DrawText(int x, int y, char *text, Uint8 red, Uint8 green, Uint8 blue, TTF_Font *font)
+{
+    SDL_Surface *buffer = NULL;
+    SDL_Color color = {red, green, blue};
+
+    buffer = TTF_RenderText_Solid(font, text, color);
+
+    SDL_Rect mover;
+    mover.x = x;
+    mover.y = y;
+
+    SDL_BlitSurface(buffer, NULL, tela, &mover);
+    SDL_FreeSurface(buffer);
+}
+
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
+TTF_Init();
+
 iconImage = SDL_LoadBMP("gfx/icon.bmp");
 
 SDL_WM_SetIcon(iconImage, 0);
@@ -193,6 +217,8 @@ tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
 // cria o objeto myWindow
 Janela myWindow;
+
+LoadFiles();
 
 // se a janela falhou
 if( myWindow.error() == true )
@@ -230,6 +256,11 @@ while(executando)
     }
 
     SDL_FillRect(tela, 0, 0);
+    DrawText(20,70,"Eu amo programar em c++", 255,255,0,ttfFile);
+
+
+    DrawText(20,150,"Créditos ação ", rand() % 256,rand() % 256,rand() % 256,ttfFile);
+
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
     {
@@ -237,6 +268,8 @@ while(executando)
     }
 }
 
+
+TTF_Quit();
 SDL_Quit();
 return 0;
 }
