@@ -5,8 +5,8 @@ SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
 
-const int screen_width = 640;
-const int screen_height = 480;
+const int screen_width = 800;
+const int screen_height = 600;
 const int screen_bpp = 32;
 
 // use essa função pra carregar uma imagem.bmp e deixa o fundo transparente
@@ -256,10 +256,10 @@ while(executando)
     }
 
     SDL_FillRect(tela, 0, 0);
-    DrawText(20,70,"Eu amo programar em c++", 255,255,0,ttfFile);
 
-
-    DrawText(20,150,"Créditos ação ", rand() % 256,rand() % 256,rand() % 256,ttfFile);
+    // teste
+    DrawText(120,70,"Eu amo programar em c++", 255,255,0,ttfFile);
+    DrawText(120,150,"Créditos ação ", rand() % 256,rand() % 256,rand() % 256,ttfFile);
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
