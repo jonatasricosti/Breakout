@@ -44,6 +44,7 @@ void DrawImage(int x, int y, SDL_Surface *image)
 
 SDL_Surface *iconImage = NULL;
 SDL_Surface *backgroundImage = NULL;
+SDL_Surface *playerImage     = NULL;
 
 TTF_Font *ttfFile = NULL;
 
@@ -53,6 +54,7 @@ void LoadFiles()
 {
     ttfFile = TTF_OpenFont("fontes/times.ttf", 40);
     backgroundImage = SDL_LoadBMP("gfx/background.bmp");
+    playerImage     = SDL_LoadBMP("gfx/player.bmp");
 }
 
 
@@ -62,6 +64,7 @@ void CloseFiles()
 {
     SDL_FreeSurface(iconImage);
     SDL_FreeSurface(backgroundImage);
+    SDL_FreeSurface(playerImage);
     TTF_CloseFont(ttfFile);
 }
 
@@ -208,16 +211,85 @@ void DrawText(int x, int y, char *text, Uint8 red, Uint8 green, Uint8 blue, TTF_
     SDL_FreeSurface(buffer);
 }
 
+class _Player
+{
+public:
+    int x;
+    int y;
+    int width;
+    int height;
+    int speed;
+    int lives;
+};
+
+_Player player;
+
+// posição da área background.bmp
+const int GAMEAREA_X1 = 20;
+const int GAMEAREA_X2 = 598;
+const int GAMEAREA_Y1 = 20;
+const int GAMEAREA_Y2 = 600;
+
+void ResetGame()
+{
+    player.x = (GAMEAREA_X2-GAMEAREA_X1)/2;
+    player.y = 550;
+    player.width = 100;
+    player.height = 20;
+    player.speed = 10;
+    player.lives = 3;
+}
+
+// use essa função pra física e controle do player
+void MovePlayer()
+{
+    Uint8 *tecla = SDL_GetKeyState(NULL);
+
+    if(tecla[SDLK_LEFT])
+    {
+        player.x = player.x - player.speed;
+    }
+
+    if(tecla[SDLK_RIGHT])
+    {
+        player.x = player.x + player.speed;
+    }
+
+    // colisão lado esquerdo
+    if(player.x < GAMEAREA_X1)
+    {
+        player.x = GAMEAREA_X1;
+    }
+
+    // colisão lado direito
+    if(player.x > GAMEAREA_X2-player.width)
+    {
+        player.x = GAMEAREA_X2-player.width;
+    }
+
+    /*
+    if(tecla[SDLK_SPACE] && ball.IsLocked == true)
+    {
+        ball.IsLocked = false;
+        ball.vx = rand()%3 -1;
+        ball.vy = BALL_SPEED;
+    }
+    */
+}
+
 
 void DrawGame()
 {
     DrawImage(0,0,backgroundImage);
+    DrawImage(player.x,player.y,playerImage);
 }
 
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 TTF_Init();
+
+ResetGame();
 
 iconImage = SDL_LoadBMP("gfx/icon.bmp");
 
@@ -267,6 +339,7 @@ while(executando)
     SDL_FillRect(tela, 0, 0);
 
     DrawGame();
+    MovePlayer();
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
