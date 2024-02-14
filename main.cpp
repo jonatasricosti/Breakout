@@ -42,9 +42,28 @@ void DrawImage(int x, int y, SDL_Surface *image)
     SDL_BlitSurface(image, NULL, tela, &mover);
 }
 
+// use essa função pra desenhar uma imagem cortada na tela
+void DrawImageFrame(int x, int y, SDL_Surface *source, SDL_Surface *destination, int width, int height, int frame)
+{
+    SDL_Rect mover;
+    mover.x = x;
+    mover.y = y;
+
+    int coluna = source->w / width;
+
+    SDL_Rect corte;
+    corte.x = (frame % coluna)*width;
+    corte.y = (frame / coluna)*height;
+    corte.w = width;
+    corte.h = height;
+
+    SDL_BlitSurface(source, &corte, destination, &mover);
+}
+
 SDL_Surface *iconImage = NULL;
 SDL_Surface *backgroundImage = NULL;
 SDL_Surface *playerImage     = NULL;
+SDL_Surface *BlockImage = NULL;
 
 TTF_Font *ttfFile = NULL;
 
@@ -55,6 +74,8 @@ void LoadFiles()
     ttfFile = TTF_OpenFont("fontes/times.ttf", 40);
     backgroundImage = SDL_LoadBMP("gfx/background.bmp");
     playerImage     = SDL_LoadBMP("gfx/player.bmp");
+    BlockImage = SDL_LoadBMP("gfx/blocks.bmp");
+
 }
 
 
@@ -66,6 +87,7 @@ void CloseFiles()
     SDL_FreeSurface(backgroundImage);
     SDL_FreeSurface(playerImage);
     TTF_CloseFont(ttfFile);
+    SDL_FreeSurface(BlockImage);
 }
 
 // para o framerate
@@ -230,6 +252,52 @@ const int GAMEAREA_X2 = 598;
 const int GAMEAREA_Y1 = 20;
 const int GAMEAREA_Y2 = 600;
 
+// essa classe representa o bloco
+class _Block
+{
+    public:
+    int x;
+    int y;
+    int width;
+    int height;
+    bool visible; // true desenha false não desenha
+    int frame;
+};
+
+const int BLOCK_COLUMNS = 11;
+const int BLOCK_ROWS = 5;
+const int BLOCK_WIDTH = 50;
+const int BLOCK_HEIGHT = 25;
+
+// objetos
+_Block blocks[BLOCK_COLUMNS*BLOCK_ROWS];
+
+// inicia posição x,y dos blocos
+// tamanho width e height
+// deixa eles visiveis
+// corta quadro blocos frame i mod 4
+void SetBlocks()
+{
+    // cada i é um bloco
+    static int i = 0;
+
+    for(int x = 0; x < BLOCK_COLUMNS; x++)
+    {
+        for(int y = 0; y < BLOCK_ROWS; y++)
+        {
+            blocks[i].x = x*BLOCK_WIDTH + GAMEAREA_X1 + x*3;
+            blocks[i].y = (y*2) * BLOCK_HEIGHT + GAMEAREA_Y1 + y*3;
+            blocks[i].width = BLOCK_WIDTH;
+            blocks[i].height = BLOCK_HEIGHT;
+            blocks[i].visible = true;
+            blocks[i].frame = i % 4;
+            i++;
+        }
+    }
+}
+
+
+// inicia as propriedades dos objetos de classes
 void ResetGame()
 {
     player.x = (GAMEAREA_X2-GAMEAREA_X1)/2;
@@ -238,7 +306,39 @@ void ResetGame()
     player.height = 20;
     player.speed = 10;
     player.lives = 3;
+
+
+    SetBlocks();
 }
+
+// desenha os frames de blocos visiveis
+void DrawBlocks()
+{
+    for(int i = 0; i < BLOCK_COLUMNS*BLOCK_ROWS; i++)
+    {
+        if(blocks[i].visible == true)
+        {
+            DrawImageFrame(blocks[i].x,blocks[i].y,BlockImage,tela,blocks[i].width,blocks[i].height,blocks[i].frame);
+        }
+    }
+}
+
+// conta o número de blocos visiveis
+int NumBlocksLeft()
+{
+    static int result = 0;
+
+    for(int i = 0; i < BLOCK_COLUMNS*BLOCK_ROWS; i++)
+    {
+        if(blocks[i].visible == true)
+        {
+            result++;
+        }
+    }
+
+    return result;
+}
+
 
 // use essa função pra física e controle do player
 void MovePlayer()
@@ -282,6 +382,12 @@ void DrawGame()
 {
     DrawImage(0,0,backgroundImage);
     DrawImage(player.x,player.y,playerImage);
+    DrawBlocks();
+
+    if(NumBlocksLeft() == 0)
+    {
+        ResetGame();
+    }
 }
 
 int main(int argc, char*args[])
@@ -339,6 +445,7 @@ while(executando)
     SDL_FillRect(tela, 0, 0);
 
     DrawGame();
+
     MovePlayer();
 
     SDL_Flip(tela);
