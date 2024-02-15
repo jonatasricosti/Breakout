@@ -283,7 +283,7 @@ void SetBlocks()
     static int BLOCK_HEIGHT = 25;
 
     // cada i é um bloco
-    static int i = 0;
+    int i = 0;
 
     for(int x = 0; x < BLOCK_COLUMNS; x++)
     {
@@ -315,7 +315,7 @@ void DrawBlocks()
 // conta o número de blocos visíveis
 int NumBlocksLeft()
 {
-    static int result = 0;
+    int result = 0;
 
     for(int i = 0; i < BLOCK_COLUMNS*BLOCK_ROWS; i++)
     {
@@ -386,7 +386,7 @@ void DrawGame()
     DrawImage(player.x,player.y,playerImage);
     DrawBlocks();
 
-    if(NumBlocksLeft() == 0)
+    if(NumBlocksLeft() <= 0)
     {
         ResetGame();
     }
