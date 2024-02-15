@@ -73,7 +73,7 @@ SDL_Surface *BlockImage = NULL;
 // nota: essa função só deve ser chamada no começo do programa
 void LoadFiles()
 {
-    ttfFile = TTF_OpenFont("fontes/times.ttf", 40);
+    ttfFile = TTF_OpenFont("fontes/times.ttf", 20);
     backgroundImage = SDL_LoadBMP("gfx/background.bmp");
     playerImage     = SDL_LoadBMP("gfx/player.bmp");
     BlockImage = SDL_LoadBMP("gfx/blocks.bmp");
@@ -379,10 +379,24 @@ void MovePlayer()
     */
 }
 
+void DrawHub()
+{
+    char blocksText[64];
+    char livesText[64];
+
+    sprintf(blocksText,"Blocos: %d",NumBlocksLeft());
+    sprintf(livesText,"Vidas: %d",player.lives);
+    player.lives = player.lives+1;
+
+    DrawText(645,150,blocksText,255,255,255,ttfFile);
+    DrawText(645,170,livesText,255,255,255,ttfFile);
+}
 
 void DrawGame()
 {
+
     DrawImage(0,0,backgroundImage);
+    DrawHub();
     DrawImage(player.x,player.y,playerImage);
     DrawBlocks();
 
