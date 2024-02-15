@@ -1,6 +1,20 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
+// use essa função pra detectar colisão entre dois retângulos
+int AABB(int x1, int y1, int width1, int height1, int x2, int y2, int width2, int height2)
+{
+    if(x1 < x2 + width2 &&
+	x2 < x1+width1 &&
+	y1 < y2+height2 &&
+	y2 < y1+height1)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
@@ -66,7 +80,7 @@ SDL_Surface *iconImage = NULL;
 SDL_Surface *backgroundImage = NULL;
 SDL_Surface *playerImage     = NULL;
 SDL_Surface *BlockImage = NULL;
-
+SDL_Surface *BallImage = NULL;
 
 
 // use essa função pra carregar arquivos
@@ -77,6 +91,7 @@ void LoadFiles()
     backgroundImage = SDL_LoadBMP("gfx/background.bmp");
     playerImage     = SDL_LoadBMP("gfx/player.bmp");
     BlockImage = SDL_LoadBMP("gfx/blocks.bmp");
+    BallImage = fundo_transparente("gfx/ball.bmp", 255,0,255);
 }
 
 
@@ -89,6 +104,7 @@ void CloseFiles()
     SDL_FreeSurface(backgroundImage);
     SDL_FreeSurface(playerImage);
     SDL_FreeSurface(BlockImage);
+    SDL_FreeSurface(BallImage);
 }
 
 // para o framerate
@@ -329,6 +345,136 @@ int NumBlocksLeft()
 }
 
 
+// essa classe representa a bola
+class Ball
+{
+    public:
+    int x;
+    int y;
+    int width;
+    int height;
+    int vx;
+    int vy;
+    bool isLocked;
+};
+
+Ball ball;
+
+
+
+void MoveBall()
+{
+    // se a bola tá bloqueada
+    // coloque no centro de cima da raquete
+    // e faça andar junto com a raquete
+    if(ball.isLocked == true)
+    {
+        int PaddleCenterX = player.x + player.width/2;
+        ball.x = PaddleCenterX - ball.width/2;
+        ball.y = player.y - ball.height;
+    }
+
+    // desbloqueou
+    else
+    {
+        ball.x = ball.x + ball.vx;
+
+        // raquete e bola
+        if(AABB(ball.x,ball.y,ball.width,ball.height,player.x,player.y,player.width,player.height))
+        {
+            ball.x = ball.x-ball.vx;
+            ball.vx = -ball.vx;
+            // toque som
+        }
+
+        else
+        {
+            for(int i = 0; i < BLOCK_COLUMNS*BLOCK_ROWS; i++)
+            {
+                if(block[i].visible && AABB(ball.x, ball.y, ball.width, ball.height, block[i].x, block[i].y, block[i].width, block[i].height))
+                {
+                    ball.x = ball.x - ball.vx;
+                    ball.vx = -ball.vx;
+                    block[i].visible = false;
+
+                    // toque som
+                }
+            }
+        }
+
+        ball.y = ball.y+ball.vy;
+
+        // raquete e bola
+        if(AABB(ball.x,ball.y,ball.width,ball.height,player.x,player.y,player.width,player.height))
+        {
+            ball.y = ball.y-ball.vy;
+            ball.vy = -ball.vy;
+
+            // Faça da velocidade X a distância entre o centro da raquete e o centro da bola dividido por 5
+            int ballCenterX = ball.x+ball.width/2;
+            int paddleCenterX = player.x+player.width/2;
+
+            ball.vx = (ballCenterX - paddleCenterX)/5;
+            // toque som
+        }
+
+        else
+        {
+           for(int i = 0; i < BLOCK_COLUMNS*BLOCK_ROWS; i++)
+           {
+               if(block[i].visible && AABB(ball.x, ball.y, ball.width, ball.height, block[i].x, block[i].y, block[i].width, block[i].height))
+               {
+                   ball.y = ball.y-ball.vy;
+                   ball.vy = -ball.vy;
+                   block[i].visible = false;
+                   // toque som
+               }
+           }
+        }
+
+        // colisão nos lados da tela
+
+        // lado de cima
+        if(ball.y < GAMEAREA_Y1)
+        {
+            ball.y = GAMEAREA_Y1;
+            ball.vy = -ball.vy;
+            // toque som
+        }
+
+        // lado direito
+        if(ball.x > GAMEAREA_X2 - ball.width)
+        {
+            ball.x = GAMEAREA_X2-ball.width;
+            ball.vx = -ball.vx;
+            // toque som
+        }
+
+        // lado esquerdo
+        if(ball.x < GAMEAREA_X1)
+        {
+            ball.x = GAMEAREA_X1;
+            ball.vx = -ball.vx;
+            // toque som
+        }
+
+        // lado de baixo caiu
+        if(ball.y > GAMEAREA_Y2)
+        {
+            ball.isLocked = true;
+
+            int PaddleCenterX = player.x + player.width/2;
+            ball.x = PaddleCenterX - ball.width/2;
+            ball.y = player.y - ball.height;
+
+            // perde vida
+            player.lives = player.lives  - 1;
+
+            // toque som
+        }
+    }
+}
+
 // inicia as propriedades dos objetos de classes
 void ResetGame()
 {
@@ -338,6 +484,12 @@ void ResetGame()
     player.height = 20;
     player.speed = 10;
     player.lives = 3;
+
+    ball.x = 200;
+    ball.y = 300;
+    ball.width = 20;
+    ball.height = 20;
+    ball.isLocked = true;
 
     SetBlocks();
 }
@@ -369,14 +521,13 @@ void MovePlayer()
         player.x = GAMEAREA_X2-player.width;
     }
 
-    /*
-    if(tecla[SDLK_SPACE] && ball.IsLocked == true)
+
+    if(tecla[SDLK_SPACE] && ball.isLocked == true)
     {
-        ball.IsLocked = false;
+        ball.isLocked= false;
         ball.vx = rand()%3 -1;
-        ball.vy = BALL_SPEED;
+        ball.vy = 10;
     }
-    */
 }
 
 void DrawHub()
@@ -386,7 +537,6 @@ void DrawHub()
 
     sprintf(blocksText,"Blocos: %d",NumBlocksLeft());
     sprintf(livesText,"Vidas: %d",player.lives);
-    player.lives = player.lives+1;
 
     DrawText(645,150,blocksText,255,255,255,ttfFile);
     DrawText(645,170,livesText,255,255,255,ttfFile);
@@ -399,6 +549,7 @@ void DrawGame()
     DrawHub();
     DrawImage(player.x,player.y,playerImage);
     DrawBlocks();
+    DrawImage(ball.x,ball.y,BallImage);
 
     if(NumBlocksLeft() <= 0)
     {
@@ -462,6 +613,7 @@ while(executando)
 
     DrawGame();
     MovePlayer();
+    MoveBall();
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
