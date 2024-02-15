@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 
 // use essa função pra detectar colisão entre dois retângulos
 int AABB(int x1, int y1, int width1, int height1, int x2, int y2, int width2, int height2)
@@ -82,6 +83,12 @@ SDL_Surface *playerImage     = NULL;
 SDL_Surface *BlockImage = NULL;
 SDL_Surface *BallImage = NULL;
 
+// pra wavs
+Mix_Chunk *ball_bounceSound = NULL;
+Mix_Chunk *ball_spawnSound  = NULL;
+Mix_Chunk *explosionSound   = NULL;
+
+
 
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
@@ -92,6 +99,11 @@ void LoadFiles()
     playerImage     = SDL_LoadBMP("gfx/player.bmp");
     BlockImage = SDL_LoadBMP("gfx/blocks.bmp");
     BallImage = fundo_transparente("gfx/ball.bmp", 255,0,255);
+
+    // abrir sounds
+    ball_bounceSound = Mix_LoadWAV("audio/ball_bounce.wav");
+    ball_spawnSound  = Mix_LoadWAV("audio/ball_spawn.wav");
+    explosionSound   = Mix_LoadWAV("audio/explosion.wav");
 }
 
 
@@ -105,6 +117,11 @@ void CloseFiles()
     SDL_FreeSurface(playerImage);
     SDL_FreeSurface(BlockImage);
     SDL_FreeSurface(BallImage);
+
+    // fechar sounds
+    Mix_FreeChunk(ball_bounceSound);
+    Mix_FreeChunk(ball_spawnSound);
+    Mix_FreeChunk(explosionSound);
 }
 
 // para o framerate
@@ -384,7 +401,7 @@ void MoveBall()
         {
             ball.x = ball.x-ball.vx;
             ball.vx = -ball.vx;
-            // toque som
+            Mix_PlayChannel(-1,ball_bounceSound,0);
         }
 
         else
@@ -396,8 +413,7 @@ void MoveBall()
                     ball.x = ball.x - ball.vx;
                     ball.vx = -ball.vx;
                     block[i].visible = false;
-
-                    // toque som
+                    Mix_PlayChannel(-1,explosionSound,0);
                 }
             }
         }
@@ -415,7 +431,7 @@ void MoveBall()
             int paddleCenterX = player.x+player.width/2;
 
             ball.vx = (ballCenterX - paddleCenterX)/5;
-            // toque som
+            Mix_PlayChannel(-1,ball_bounceSound,0);
         }
 
         else
@@ -427,7 +443,7 @@ void MoveBall()
                    ball.y = ball.y-ball.vy;
                    ball.vy = -ball.vy;
                    block[i].visible = false;
-                   // toque som
+                   Mix_PlayChannel(-1,explosionSound,0);
                }
            }
         }
@@ -439,7 +455,7 @@ void MoveBall()
         {
             ball.y = GAMEAREA_Y1;
             ball.vy = -ball.vy;
-            // toque som
+            Mix_PlayChannel(-1,ball_bounceSound,0);
         }
 
         // lado direito
@@ -447,7 +463,7 @@ void MoveBall()
         {
             ball.x = GAMEAREA_X2-ball.width;
             ball.vx = -ball.vx;
-            // toque som
+            Mix_PlayChannel(-1,ball_bounceSound,0);
         }
 
         // lado esquerdo
@@ -455,7 +471,7 @@ void MoveBall()
         {
             ball.x = GAMEAREA_X1;
             ball.vx = -ball.vx;
-            // toque som
+            Mix_PlayChannel(-1,ball_bounceSound,0);
         }
 
         // lado de baixo caiu
@@ -469,8 +485,7 @@ void MoveBall()
 
             // perde vida
             player.lives = player.lives  - 1;
-
-            // toque som
+            Mix_PlayChannel(-1,ball_spawnSound,0);
         }
     }
 }
@@ -561,6 +576,7 @@ int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 TTF_Init();
+Mix_OpenAudio(22050,MIX_DEFAULT_FORMAT,2,2048);
 
 ResetGame();
 
@@ -623,6 +639,7 @@ while(executando)
 }
 
 
+Mix_CloseAudio();
 TTF_Quit();
 SDL_Quit();
 return 0;
