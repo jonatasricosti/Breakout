@@ -186,8 +186,8 @@ class Janela
                 return;
             }
         }
-        // se apertou o botão enter
-        else if( ( evento.type == SDL_KEYDOWN ) && ( evento.key.keysym.sym == SDLK_RETURN) )
+        // se apertou o botão f
+        else if( ( evento.type == SDL_KEYDOWN ) && ( evento.key.keysym.sym == SDLK_f) )
         {
             // liga/desliga fullscreen/tela cheia
             toggle_fullscreen();
