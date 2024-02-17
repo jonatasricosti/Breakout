@@ -267,6 +267,22 @@ void DrawText(int x, int y, char *text, Uint8 red, Uint8 green, Uint8 blue, TTF_
     SDL_FreeSurface(buffer);
 }
 
+// use essa função pra desenhar um texto no centro da tela usando fonte ttf
+void DrawTextCenter(int x, int y, char *text, Uint8 red, Uint8 green, Uint8 blue, TTF_Font *font)
+{
+    SDL_Surface *buffer = NULL;
+    SDL_Color color = {red, green, blue};
+
+    buffer = TTF_RenderText_Solid(font, text, color);
+
+    SDL_Rect mover;
+    mover.x = x+(screen_width - buffer->w)/2;
+    mover.y = y+(screen_height - buffer->h)/2;
+
+    SDL_BlitSurface(buffer, NULL, tela, &mover);
+    SDL_FreeSurface(buffer);
+}
+
 class _Player
 {
 public:
