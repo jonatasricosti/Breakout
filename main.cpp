@@ -599,6 +599,7 @@ ResetGame();
 iconImage = SDL_LoadBMP("gfx/icon.bmp");
 
 SDL_WM_SetIcon(iconImage, 0);
+SDL_putenv("SDL_VIDEO_WINDOW_POS=center"); // centraliza a janela
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
 // cria o objeto myWindow
